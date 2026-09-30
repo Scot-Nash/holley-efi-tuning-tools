@@ -1,0 +1,82 @@
+import os
+import glob
+import pandas as pd
+
+def find_global_max_across_csvs(folder_path, target_variable):
+    max_val = float('-inf')
+    max_file = None
+    max_time = None
+    
+    # Find all CSV files matching your segment naming pattern
+    csv_files = glob.glob(os.path.join(folder_path, "09_12_26_2_*.csv"))
+    
+    if not csv_files:
+        print(f"No matching CSV files found in {folder_path}")
+        return None
+        
+    for file_path in csv_files:
+        try:
+            # skiprows=[1] skips the Holley units row (e.g., [psi], [sec])
+            df = pd.read_csv(file_path, encoding='latin-1', skiprows=[1])
+            
+            # Clean column names (strip whitespace)
+            df.columns = df.columns.str.strip()
+            
+            if target_variable not in df.columns:
+                print(f"Skipping {os.path.basename(file_path)}: '{target_variable}' not found.")
+                continue
+            
+            df[target_variable] = pd.to_numeric(df[target_variable], errors='coerce')
+            
+            # Special filtering for Wheel Slip: require positive X-axis acceleration (X axis > 0)
+            # to block coasting/deceleration noise while keeping true lower-magnitude slips.
+            if 'WHEEL SLIP' in target_variable.upper():
+                xaxis_col = next((col for col in df.columns if 'x axis' in col.lower() or 'long' in col.lower()), None)
+                if xaxis_col:
+                    df[xaxis_col] = pd.to_numeric(df[xaxis_col], errors='coerce')
+                    df = df[df[xaxis_col] > 0.0]
+            
+            # Find time column dynamically
+            time_col = next((col for col in df.columns if 'time' in col.lower() or 'sec' in col.lower() or 'rtc' in col.lower()), None)
+            if time_col:
+                df[time_col] = pd.to_numeric(df[time_col], errors='coerce')
+                
+                # If this is the first file (_1.csv), ignore the startup ramp (first 2 seconds)
+                if "_1.csv" in file_path:
+                    df = df[df[time_col] >= 2.0]
+            
+            valid_df = df.dropna(subset=[target_variable])
+            if valid_df.empty:
+                continue
+                
+            local_max_idx = valid_df[target_variable].idxmax()
+            local_max_val = valid_df.loc[local_max_idx, target_variable]
+            
+            if local_max_val > max_val:
+                max_val = local_max_val
+                max_file = os.path.basename(file_path)
+                max_time = valid_df.loc[local_max_idx, time_col] if time_col else "Unknown Time"
+                
+        except Exception as e:
+            print(f"Error reading {os.path.basename(file_path)}: {e}")
+            
+    return {"max_value": max_val, "file": max_file, "time": max_time}
+
+if __name__ == "__main__":
+    # Point to the folder where your CSV files are saved
+    log_folder = r"C:\Users\snash\Documents\Holley\HEFI V6\Data Logs"
+    variable = "WHEEL SLIP"  # Change to "AFR Left", "RPM", etc. as needed
+    
+    print(f"Scanning files for maximum '{variable}' (filtering out coasting/deceleration)...")
+    result = find_global_max_across_csvs(log_folder, variable)
+    
+    if result and result["max_value"] != float('-inf'):
+        print("\n--- Global Maximum Found ---")
+        print(f"  Variable: {variable}")
+        print(f"  Maximum Value: {result['max_value']}")
+        print(f"  Source File:   {result['file']}")
+        print(f"  Timestamp:     {result['time']}")
+    else:
+        print("\nCould not find a maximum value. Check your folder path or variable name.")
+        
+    input("\nAnalysis complete. Press Enter to exit...")

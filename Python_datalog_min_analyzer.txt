@@ -1,0 +1,69 @@
+import os
+import glob
+import pandas as pd
+
+def find_global_min_across_csvs(folder_path, target_variable):
+    min_val = float('inf')
+    min_file = None
+    min_time = None
+    
+    csv_files = glob.glob(os.path.join(folder_path, "09_12_26_2_*.csv"))
+    
+    if not csv_files:
+        print(f"No matching CSV files found in {folder_path}")
+        return None
+        
+    for file_path in csv_files:
+        try:
+            df = pd.read_csv(file_path, encoding='latin-1', skiprows=[1])
+            df.columns = df.columns.str.strip()
+            
+            if target_variable not in df.columns:
+                print(f"Skipping {os.path.basename(file_path)}: '{target_variable}' not found.")
+                continue
+            
+            df[target_variable] = pd.to_numeric(df[target_variable], errors='coerce')
+            
+            # Find time column dynamically
+            time_col = next((col for col in df.columns if 'time' in col.lower() or 'sec' in col.lower() or 'rtc' in col.lower()), None)
+            if time_col:
+                df[time_col] = pd.to_numeric(df[time_col], errors='coerce')
+                
+                # If this is the first file (_1.csv), ignore the startup ramp (first 2 seconds)
+                if "_1.csv" in file_path:
+                    df = df[df[time_col] >= 2.0]
+            
+            valid_df = df.dropna(subset=[target_variable])
+            if valid_df.empty:
+                continue
+                
+            local_min_idx = valid_df[target_variable].idxmin()
+            local_min_val = valid_df.loc[local_min_idx, target_variable]
+            
+            if local_min_val < min_val:
+                min_val = local_min_val
+                min_file = os.path.basename(file_path)
+                min_time = valid_df.loc[local_min_idx, time_col] if time_col else "Unknown Time"
+                
+        except Exception as e:
+            print(f"Error reading {os.path.basename(file_path)}: {e}")
+            
+    return {"min_value": min_val, "file": min_file, "time": min_time}
+
+if __name__ == "__main__":
+    log_folder = r"C:\Users\snash\Documents\Holley\HEFI V6\Data Logs"
+    variable = "Oil Pressure"
+    
+    print(f"Scanning files for minimum '{variable}' (skipping startup ramp in file 1)...")
+    result = find_global_min_across_csvs(log_folder, variable)
+    
+    if result and result["min_value"] != float('inf'):
+        print("\n--- Global Minimum Found ---")
+        print(f"  Variable: {variable}")
+        print(f"  Minimum Value: {result['min_value']}")
+        print(f"  Source File:   {result['file']}")
+        print(f"  Timestamp:     {result['time']}")
+    else:
+        print("\nCould not find a minimum value. Check your folder path or variable name.")
+        
+    input("\nAnalysis complete. Press Enter to exit...")
