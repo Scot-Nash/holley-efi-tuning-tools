@@ -8,7 +8,7 @@ def find_global_max_across_csvs(folder_path, target_variable):
     max_time = None
     
     # Find all CSV files matching your segment naming pattern
-    csv_files = glob.glob(os.path.join(folder_path, "09_12_26_2_*.csv"))
+    csv_files = glob.glob(os.path.join(folder_path, "PASTE_THE_NAME_OF_YOUR_DATALOG_HERE_*.csv"))
     
     if not csv_files:
         print(f"No matching CSV files found in {folder_path}")
