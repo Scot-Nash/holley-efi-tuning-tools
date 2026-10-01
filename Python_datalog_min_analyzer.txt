@@ -7,7 +7,7 @@ def find_global_min_across_csvs(folder_path, target_variable):
     min_file = None
     min_time = None
     
-    csv_files = glob.glob(os.path.join(folder_path, "09_12_26_2_*.csv"))
+    csv_files = glob.glob(os.path.join(folder_path, "PASTE_THE_NAME_OF_YOUR_DATALOG_HERE_*.csv"))
     
     if not csv_files:
         print(f"No matching CSV files found in {folder_path}")
@@ -51,8 +51,8 @@ def find_global_min_across_csvs(folder_path, target_variable):
     return {"min_value": min_val, "file": min_file, "time": min_time}
 
 if __name__ == "__main__":
-    log_folder = r"C:\Users\snash\Documents\Holley\HEFI V6\Data Logs"
-    variable = "Oil Pressure"
+    log_folder = r"PASTE_YOUR_FOLDER_PATH_HERE"
+    variable = "PASTE_YOUR_VARIABLE_HERE"
     
     print(f"Scanning files for minimum '{variable}' (skipping startup ramp in file 1)...")
     result = find_global_min_across_csvs(log_folder, variable)
