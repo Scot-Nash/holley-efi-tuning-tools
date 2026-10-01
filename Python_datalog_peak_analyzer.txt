@@ -65,7 +65,7 @@ def find_global_max_across_csvs(folder_path, target_variable):
 if __name__ == "__main__":
     # Point to the folder where your CSV files are saved
     log_folder = r"PASTE_YOUR_FOLDER_PATH_HERE"
-    variable = "WHEEL SLIP"  # Change to "AFR Left", "RPM", etc. as needed
+    variable = "PASTE_YOUR_VARIABLE_HERE"  #"AFR Left", "RPM", etc. as needed
     
     print(f"Scanning files for maximum '{variable}' (filtering out coasting/deceleration)...")
     result = find_global_max_across_csvs(log_folder, variable)
