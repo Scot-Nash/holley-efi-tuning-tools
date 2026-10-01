@@ -52,7 +52,7 @@ def find_global_min_across_csvs(folder_path, target_variable):
 
 if __name__ == "__main__":
     log_folder = r"PASTE_YOUR_FOLDER_PATH_HERE"
-    variable = "PASTE_YOUR_VARIABLE_HERE"
+    variable = "PASTE_YOUR_VARIABLE_HERE" #"AFR Left", "RPM", etc. as needed
     
     print(f"Scanning files for minimum '{variable}' (skipping startup ramp in file 1)...")
     result = find_global_min_across_csvs(log_folder, variable)
