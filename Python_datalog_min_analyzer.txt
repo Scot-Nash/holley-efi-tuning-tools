@@ -2,68 +2,75 @@ import os
 import glob
 import pandas as pd
 
-def find_global_min_across_csvs(folder_path, target_variable):
+
+def find_global_min_across_csvs(folder_path, target_variable, datalog_prefix=""):
     min_val = float('inf')
     min_file = None
     min_time = None
-    
-    csv_files = glob.glob(os.path.join(folder_path, "PASTE_THE_NAME_OF_YOUR_DATALOG_HERE_*.csv"))
-    
+
+    # Search for files using the prefix specified at the bottom of the script
+    csv_files = glob.glob(os.path.join(folder_path, f"{datalog_prefix}*.csv"))
+
     if not csv_files:
         print(f"No matching CSV files found in {folder_path}")
         return None
-        
+
     for file_path in csv_files:
         try:
             df = pd.read_csv(file_path, encoding='latin-1', skiprows=[1])
             df.columns = df.columns.str.strip()
-            
+
             if target_variable not in df.columns:
                 print(f"Skipping {os.path.basename(file_path)}: '{target_variable}' not found.")
                 continue
-            
+
             df[target_variable] = pd.to_numeric(df[target_variable], errors='coerce')
-            
+
             # Find time column dynamically
             time_col = next((col for col in df.columns if 'time' in col.lower() or 'sec' in col.lower() or 'rtc' in col.lower()), None)
             if time_col:
                 df[time_col] = pd.to_numeric(df[time_col], errors='coerce')
-                
-                # If this is the first file (_1.csv), ignore the startup ramp (first 2 seconds)
+
+                # If this is the first file (_1.csv), ignore the startup ramp (first 5 seconds)
                 if "_1.csv" in file_path:
-                    df = df[df[time_col] >= 2.0]
-            
+                    df = df[df[time_col] >= 5.0]
+
             valid_df = df.dropna(subset=[target_variable])
             if valid_df.empty:
                 continue
-                
+
             local_min_idx = valid_df[target_variable].idxmin()
             local_min_val = valid_df.loc[local_min_idx, target_variable]
-            
+
             if local_min_val < min_val:
                 min_val = local_min_val
                 min_file = os.path.basename(file_path)
-                min_time = valid_df.loc[local_min_idx, time_col] if time_col else "Unknown Time"
-                
+                min_time = valid_df.loc[local_min_idx, time_col] if time_col else None
+
         except Exception as e:
             print(f"Error reading {os.path.basename(file_path)}: {e}")
-            
+
     return {"min_value": min_val, "file": min_file, "time": min_time}
 
+
 if __name__ == "__main__":
+    # ======================================================================
+    # CHANGE THESE 3 LINES FOR YOUR DATA LOGS:
+    # ======================================================================
     log_folder = r"PASTE_YOUR_FOLDER_PATH_HERE"
-    variable = "PASTE_YOUR_VARIABLE_HERE" #"AFR Left", "RPM", etc. as needed
-    
+    datalog_prefix = "PASTE_THE_NAME_OF_YOUR_DATALOG_HERE_"  # e.g., "09_12_26_1_"
+    variable = "PASTE_YOUR_VARIABLE_HERE"                 # e.g., "Oil Pressure", "AFR Left", "RPM"
+    # ======================================================================
+
     print(f"Scanning files for minimum '{variable}' (skipping startup ramp in file 1)...")
-    result = find_global_min_across_csvs(log_folder, variable)
-    
+    result = find_global_min_across_csvs(log_folder, variable, datalog_prefix)
+
     if result and result["min_value"] != float('inf'):
         print("\n--- Global Minimum Found ---")
-        print(f"  Variable: {variable}")
-        print(f"  Minimum Value: {result['min_value']}")
-        print(f"  Source File:   {result['file']}")
-        print(f"  Timestamp:     {result['time']}")
+        print(f"Variable:      {variable}")
+        print(f"Minimum Value: {result['min_value']}")
+        print(f"File Name:     {result['file']}")
+        if result['time'] is not None:
+            print(f"Time:          {result['time']} seconds")
     else:
-        print("\nCould not find a minimum value. Check your folder path or variable name.")
-        
-    input("\nAnalysis complete. Press Enter to exit...")
+        print("No valid data found.")
