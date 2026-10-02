@@ -81,7 +81,7 @@ Once all three lines are updated, press **Ctrl + S** on your keyboard to save!
 1. Click on the black **Command Prompt** window.
 
 
-2. Type:
+2. At the flashing prompt, enter:
 ```bash
 python analyzer.py
 ```
