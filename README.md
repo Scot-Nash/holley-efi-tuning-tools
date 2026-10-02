@@ -23,7 +23,7 @@ Below, is a step-by-step guide on how to run the script in Python
 1. Open **Command Prompt** by pressing the Windows key + R.  Next, type cmd and press enter.
 
 
-2. Type `notepad analyzer.py` and press **Enter**.
+2. Type cmd `notepad analyzer.py` and press **Enter**.
 
 
 3. A pop-up box will appear saying *"Cannot find the analyzer.py file. Do you want to create a new file?"* Click **Yes**!
