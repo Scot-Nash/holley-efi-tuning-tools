@@ -20,7 +20,7 @@ Below, is a step-by-step guide on how to run the script in Python
 
 ### Step 1: Open Your Script File
 
-1. Open **Command Prompt** by pressing the Windows key +R, type cmd (the black window).
+1. Open **Command Prompt** by pressing the Windows key +R.  Next, type cmd.
 
 
 2. Type `notepad analyzer.py` and press **Enter**.
