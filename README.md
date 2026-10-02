@@ -6,7 +6,7 @@ Free, lightweight Python tools designed to speed up tuning and data analysis for
 
 ## 📦 Requirements & Installation
 
-Before running the scripts, make sure you have Python installed, then open your terminal by pressing the Windows key +R, type cmd and then run:
+Before running the scripts, make sure you have Python installed, then open **Command Prompt** by pressing the Windows key +R.  Next, type cmd and then run:
 
 ```bash
 pip install pandas matplotlib seaborn
