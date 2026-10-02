@@ -8,7 +8,7 @@ Free, lightweight Python tools designed to speed up tuning and data analysis for
 
 Before running the scripts, make sure you have Python installed, then open **Command Prompt** by pressing the Windows key + R.  Next, type cmd and press enter. At the flashing prompt, enter:
 
-```bash
+```cmd
 pip install pandas matplotlib seaborn
 ```
 
@@ -23,13 +23,18 @@ Below, is a step-by-step guide on how to run the script in Python
 1. Open **Command Prompt** by pressing the Windows key + R.  Next, type cmd and press enter.
 
 
-2. Next, copy ```bash notepad analyzer.py ```and press **Enter**.
+2. At the flashing prompt, enter:
+
+```cmd
+notepad analyzer.py 
+```
+ 
+ ---
+
+4. A pop-up box will appear saying *"Cannot find the analyzer.py file. Do you want to create a new file?"* Click **Yes**!
 
 
-3. A pop-up box will appear saying *"Cannot find the analyzer.py file. Do you want to create a new file?"* Click **Yes**!
-
-
-4. Place **Notepad on one half of your screen** and the **black Command Prompt window on the other half**.
+5. Place **Notepad on one half of your screen** and the **black Command Prompt window on the other half**.
 
 
 
@@ -77,11 +82,11 @@ Once all three lines are updated, press **Ctrl + S** on your keyboard to save!
 
 
 2. Type:
-```cmd
+```bash
 python analyzer.py
-
 ```
 
+---
 
 3. Press **Enter** to run your program!
 
