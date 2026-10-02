@@ -6,7 +6,7 @@ Free, lightweight Python tools designed to speed up tuning and data analysis for
 
 ## 📦 Requirements & Installation
 
-Before running the scripts, make sure you have Python installed, then open **Command Prompt** by pressing the Windows key +R.  Next, type cmd and then run:
+Before running the scripts, make sure you have Python installed, then open **Command Prompt** by pressing the Windows key + R.  Next, type cmd and then run:
 
 ```bash
 pip install pandas matplotlib seaborn
@@ -20,7 +20,7 @@ Below, is a step-by-step guide on how to run the script in Python
 
 ### Step 1: Open Your Script File
 
-1. Open **Command Prompt** by pressing the Windows key +R.  Next, type cmd.
+1. Open **Command Prompt** by pressing the Windows key + R.  Next, type cmd.
 
 
 2. Type `notepad analyzer.py` and press **Enter**.
