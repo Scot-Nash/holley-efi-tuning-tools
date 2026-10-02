@@ -37,7 +37,7 @@ Below, is a step-by-step guide on how to run the script in Python
 
 ### Step 2: Paste Your Code
 
-1. Copy the script from the GitHub page (**Ctrl + C**).
+1. Copy the script from the GitHub page.
 
 
 2. Click inside your blank Notepad window and paste it (**Ctrl + V**).
