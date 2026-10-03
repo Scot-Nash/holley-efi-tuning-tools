@@ -62,7 +62,7 @@ Once updated, press **Ctrl + S** to save!
 2. Type:
 
     ```cmd
-    analyzer.py
+    python analyzer.py
     ```
 
 3. Press **Enter** to run your program!
