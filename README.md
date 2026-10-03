@@ -38,7 +38,6 @@ notepad analyzer.py
 2. Click inside your blank Notepad window and paste it (**Ctrl + V**).
 3. Save your file:
 * Press **Ctrl + S** on your keyboard to save.
-* ⚠️ **CRITICAL TIP:** If you use **File → Save As**, always change **Save as type** at the bottom to **`All Files (*.*)`**! If left as `Text Documents (*.txt)`, Windows will name your file `analyzer.py.txt` and Python will not be able to find it.
 
 
 
