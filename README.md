@@ -58,7 +58,6 @@ Change the text inside the quotes for these three settings:
 
 2. **`datalog_prefix` (The main file name):**
 * Type the beginning part of your log file name up to the last underscore (e.g., `"09_12_26_1_"`).
-* *Note: Do not type part numbers or `.csv`! The script automatically searches for every split part (`_1.csv`, `_2.csv`, `_3.csv`) for you in the background.*
 
 
 3. **`variable` (The sensor item you want to scan):**
