@@ -52,9 +52,6 @@ Change the text inside the quotes for these three settings:
 1. **`log_folder` (Where your files are stored):**
 * Open the folder containing your data logs in File Explorer.
 * Click the top address bar, press **Ctrl + C** to copy, and paste it inside the quotes after the `r`.
-* ⚠️ **IMPORTANT:**
-* Make sure there is **only ONE quote** on each side: `log_folder = r"C:\Your\Path"`
-* **Do NOT put a backslash at the very end of your folder path!** (Use `r"C:\Data Logs"`, NOT `r"C:\Data Logs\"`).
 
 
 
