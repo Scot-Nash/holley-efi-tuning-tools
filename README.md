@@ -14,27 +14,6 @@ pip install pandas matplotlib seaborn
 
 ---
 
-There are **three specific errors** in these instructions that cause the script to fail when followed step-by-step:
-
-1. **Step 4 is missing `python` in the run command (Major Issue):**
-* It tells the student to type `analyzer.py` instead of `python analyzer.py`. Typing `analyzer.py` alone causes Windows to flash a temporary pop-up window that closes instantly, or opens Notepad again instead of running the script inside Command Prompt.
-
-
-
-
-2. **Step 3 is missing path formatting warnings:**
-* If a student pastes a folder path that ends in a backslash (e.g., `r"C:\Logs\"`), the `\"` at the end breaks Python's string syntax and crashes the script.
-* If they use "Copy as Path," it pastes extra quotes (`r""C:\Logs""`), breaking Python.
-
-
-3. **Step 5 has duplicated text at the end:**
-* Lines 2–5 under "To run a completely NEW script" are accidentally duplicated at the very bottom of the document.
-
-
-
----
-
-### Fully Corrected Instructions (Copy & Paste Into GitHub)
 
 ```markdown
 # 🏎️️ Holley EFI Python Tuning Tools
