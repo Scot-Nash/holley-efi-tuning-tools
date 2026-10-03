@@ -34,7 +34,7 @@ notepad analyzer.py
 
 ### Step 2: Paste and Save Your Code
 
-1. Copy the script from the GitHub page (**Ctrl + C**).
+1. Copy the script from the GitHub page.
 2. Click inside your blank Notepad window and paste it (**Ctrl + V**).
 3. Save your file:
 * Press **Ctrl + S** on your keyboard to save.
