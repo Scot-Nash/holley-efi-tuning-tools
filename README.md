@@ -110,12 +110,14 @@ pip install pywinauto
 Wait for the installation to say Successfully installed before continuing.
 
 Step 2: Check Your Windows Display Scaling
+
 Because GUI automation relies on screen coordinates to click Holley menus, Windows scaling must be set to 100%:
 Right-click anywhere on your Windows desktop and select Display settings.
 Scroll down to the Scale & layout section.
 Make sure the scale dropdown is set to 100%. (If set higher, e.g., 125% or 150%, clicks may miss the menu buttons).
 
 Step 3: Run the Script
+
 Open your terminal or code editor (such as Visual Studio Code) in the folder where your script is saved.
 Make sure your .dl or .dlz files are in your target folder.
 Run the script:
