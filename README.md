@@ -126,5 +126,6 @@ python analyzer.py
 ```
 
 💡 Smart Resuming & Safety
+
 Safe to Stop Anytime: If you interrupt or stop the script mid-run, you don't have to start over from scratch.
 Auto-Skip: When re-run, the script automatically checks for existing .csv files (> 2 MB) in the folder and skips already-completed parts, saving you time.
