@@ -95,7 +95,7 @@ Think of this Notepad window as your **reusable workbench**. You will use this e
 5. Click Command Prompt, press the **Up Arrow** key, and press **Enter** to run!
    
 
-### 🔄 Batch Converter: How to Use
+### 🔄 Batch Converter: How to Use (note: my next tutorial video will be about this script).
 
 Follow this step-by-step guide to run the automated Holley log batch converter.
 
