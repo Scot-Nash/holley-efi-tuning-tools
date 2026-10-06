@@ -1,0 +1,200 @@
+from pathlib import Path
+import re
+import subprocess
+import time
+from pywinauto import Application
+
+TARGET_FOLDER = Path(r"PASTE YOUR DATALOG FOLDER PATH HERE")
+HOLLEY_EXE = r"C:\Program Files (x86)\Holley\EFI V6\Holley.exe"
+
+
+def export_single_log(dl_file: Path, csv_target: Path) -> bool:
+  min_valid_size = 2 * 1024 * 1024  # 2 MB threshold
+
+  if csv_target.exists():
+    try:
+      csv_target.unlink()
+    except Exception:
+      pass
+
+  print(f"  -> Opening log part: {dl_file.name}...")
+  proc = subprocess.Popen([HOLLEY_EXE, str(dl_file.resolve())])
+
+  app = None
+  log_win = None
+
+  # Aggressive 0.2s polling interval
+  for _ in range(50):
+    time.sleep(0.2)
+    try:
+      app = Application(backend="win32").connect(process=proc.pid)
+      windows = app.windows()
+
+      for w in windows:
+        title = w.window_text()
+        if not w.is_visible():
+          continue
+        if (
+            "data logger" in title.lower()
+            or "datalogger" in title.lower()
+            or dl_file.stem.lower() in title.lower()
+        ):
+          log_win = w
+          break
+
+      if log_win:
+        break
+
+      for w in windows:
+        title = w.window_text()
+        if w.is_visible() and title and "holley efi v6" not in title.lower():
+          log_win = w
+          break
+
+      if log_win:
+        break
+    except Exception:
+      pass
+
+  if not log_win:
+    print(f"  [ERROR] Data Logger window could not be isolated for {dl_file.name}.")
+    proc.terminate()
+    return False
+
+  try:
+    log_win.restore()
+    log_win.set_focus()
+    time.sleep(0.5)  # Minimal focus pause
+
+    # Snappy coordinate clicks
+    log_win.click_input(coords=(25, 45))
+    time.sleep(0.25)
+    log_win.click_input(coords=(45, 185))
+    time.sleep(0.6)  # Reduced menu load wait
+
+    dialog = None
+    for _ in range(35):
+      time.sleep(0.15)
+      try:
+        for w in app.windows():
+          if w.is_visible() and w.handle != log_win.handle:
+            w_title = w.window_text().lower()
+            if "save" in w_title or "export" in w_title or not w_title:
+              dialog = w
+              break
+        if dialog:
+          break
+      except Exception:
+        pass
+
+    if not dialog:
+      print(f"  [ERROR] Export dialog popup not detected for {dl_file.name}.")
+      proc.terminate()
+      return False
+
+    dialog.set_focus()
+    time.sleep(0.2)
+    dialog.type_keys("%n")
+    time.sleep(0.15)
+    dialog.type_keys("^a")
+    time.sleep(0.1)
+    dialog.type_keys("{DELETE}")
+    time.sleep(0.1)
+    dialog.type_keys(str(csv_target.resolve()), with_spaces=True)
+    time.sleep(0.2)
+    dialog.type_keys("{ENTER}")
+
+    # Aggressive monitoring: check every 1.5s, require 4.5s of stability
+    export_timeout = 120
+    start_export = time.time()
+    last_size = -1
+    stable_size_counter = 0.0
+    success = False
+
+    while time.time() - start_export < export_timeout:
+      time.sleep(1.5)
+      if csv_target.exists():
+        current_size = csv_target.stat().st_size
+        if current_size > 0 and current_size == last_size:
+          stable_size_counter += 1.5
+        else:
+          stable_size_counter = 0.0
+          last_size = current_size
+
+        if stable_size_counter >= 4.5 and current_size >= min_valid_size:
+          success = True
+          break
+      else:
+        if time.time() - start_export > 40:
+          break
+
+    proc.terminate()
+    time.sleep(0.5)  # Quick teardown
+
+    if success:
+      print(
+          f"  [SUCCESS] Created: {csv_target.name}"
+          f" ({csv_target.stat().st_size // (1024 * 1024)} MB)"
+      )
+      return True
+    else:
+      print(f"  [FAILED] Export timed out or incomplete for {csv_target.name}.")
+      return False
+
+  except Exception as e:
+    print(f"  [ERROR] Exception during export of {dl_file.name}: {e}")
+    try:
+      proc.terminate()
+    except Exception:
+      pass
+    return False
+
+
+def run_turbo_conversion(target_dir: Path):
+  if not target_dir.exists():
+    print(f"[ERROR] Target directory does not exist: {target_dir}")
+    return
+
+  min_valid_size = 2 * 1024 * 1024
+  dl_files = [
+      p for p in target_dir.iterdir() if p.is_file() and p.suffix.lower() == ".dl"
+  ]
+
+  missing_files = []
+  for dl in dl_files:
+    csv_path = target_dir / f"{dl.stem}.csv"
+    if not csv_path.exists() or csv_path.stat().st_size < min_valid_size:
+      missing_files.append(dl)
+
+  if not missing_files:
+    print("[INFO] All .dl files already have valid .csv counterparts!")
+    return
+
+  missing_files.sort(
+      key=lambda p: [
+          int(c) if c.isdigit() else c.lower()
+          for c in re.split(r"(\d+)", p.name)
+      ]
+  )
+
+  print(
+      f"Found {len(missing_files)} unconverted .dl file(s). Starting turbo"
+      " conversion..."
+  )
+
+  for dl_file in missing_files:
+    csv_target = target_dir / f"{dl_file.stem}.csv"
+    print(f"\n----------------------------------------")
+    print(f"Converting: {dl_file.name}")
+    print(f"----------------------------------------")
+
+    for attempt in range(1, 3):
+      if attempt > 1:
+        print(f"  [RETRY] Attempt 2 for {dl_file.name}...")
+      if export_single_log(dl_file, csv_target):
+        break
+
+
+if __name__ == "__main__":
+  run_turbo_conversion(TARGET_FOLDER)
+  print("\n[FINISHED] CSV conversion batch run complete.")
