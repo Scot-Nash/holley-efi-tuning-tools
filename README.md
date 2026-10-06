@@ -15,7 +15,7 @@ pip install pandas matplotlib seaborn
 
 ---
 
-Below is a step-by-step guide on how to run the script in Python.
+Below is a step-by-step guide on how to run the min./peak script in Python.
 
 ### Step 1: Open Your Script File
 
@@ -93,3 +93,36 @@ Think of this Notepad window as your **reusable workbench**. You will use this e
 3. Paste it into Notepad (**Ctrl + V**).
 4. Update the 3 settings at the bottom and press **Ctrl + S** to save.
 5. Click Command Prompt, press the **Up Arrow** key, and press **Enter** to run!
+   
+
+### 🔄 Batch Converter: How to Use
+
+Follow this step-by-step guide to run the automated Holley log batch converter.
+
+---
+
+#### Step 1: Install the Required Library
+Open **Command Prompt** (or terminal) and run the following command to install the Windows automation library:
+
+```bash
+pip install pywinauto
+```
+Wait for the installation to say Successfully installed before continuing.
+
+Step 2: Check Your Windows Display Scaling
+Because GUI automation relies on screen coordinates to click Holley menus, Windows scaling must be set to 100%:
+Right-click anywhere on your Windows desktop and select Display settings.
+Scroll down to the Scale & layout section.
+Make sure the scale dropdown is set to 100%. (If set higher, e.g., 125% or 150%, clicks may miss the menu buttons).
+
+Step 3: Run the Script
+Open your terminal or code editor (such as Visual Studio Code) in the folder where your script is saved.
+Make sure your .dl or .dlz files are in your target folder.
+Run the script:
+```bash
+python analyzer.py
+```
+
+💡 Smart Resuming & Safety
+Safe to Stop Anytime: If you interrupt or stop the script mid-run, you don't have to start over from scratch.
+Auto-Skip: When re-run, the script automatically checks for existing .csv files (> 2 MB) in the folder and skips already-completed parts, saving you time.
