@@ -9,7 +9,7 @@ Free, lightweight Python tools designed to speed up tuning and data analysis for
 Before running the scripts, make sure you have Python installed, then open **Command Prompt** by pressing the **Windows key + R**. Next, type `cmd` and press **Enter**. At the flashing prompt, enter:
 
 ```cmd
-pip install pandas matplotlib seaborn
+pip install pandas matplotlib seaborn pywinauto
 
 ```
 
