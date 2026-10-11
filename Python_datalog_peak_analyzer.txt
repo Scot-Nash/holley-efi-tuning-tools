@@ -7,14 +7,16 @@ def find_global_max_across_csvs(folder_path, target_variable):
     max_file = None
     max_time = None
     
-    # Updated to dynamically catch all CSV files in the folder regardless of prefix
-    csv_files = glob.glob(os.path.join(folder_path, "*.csv")) + glob.glob(os.path.join(folder_path, "*.CSV"))
+    # Strictly target true segment files by checking part count (master files have 4 parts, segments have >= 5)
+    all_csvs = set(glob.glob(os.path.join(folder_path, "*.csv")) + glob.glob(os.path.join(folder_path, "*.CSV")))
+    csv_files = [f for f in all_csvs if len(os.path.basename(f).split('_')) >= 5]
     
     if not csv_files:
-        print(f"No matching CSV files found in {folder_path}")
+        print(f"No matching segment CSV files found in {folder_path}")
         return None
         
-    for file_path in csv_files:
+    for file_path in sorted(csv_files):
+        filename = os.path.basename(file_path)
         try:
             # skiprows=[1] skips the Holley units row (e.g., [psi], [sec])
             df = pd.read_csv(file_path, encoding='latin-1', skiprows=[1])
@@ -22,19 +24,21 @@ def find_global_max_across_csvs(folder_path, target_variable):
             # Clean column names (strip whitespace)
             df.columns = df.columns.str.strip()
             
-            if target_variable not in df.columns:
-                print(f"Skipping {os.path.basename(file_path)}: '{target_variable}' not found.")
+            # Dynamically look for the filtered channel first (e.g., 'WHEEL SLIP - F'), fallback to raw
+            match_col = next((col for col in df.columns if target_variable.upper() in col.upper() and ('- F' in col or 'FILTERED' in col.upper())), None)
+            if not match_col:
+                match_col = next((col for col in df.columns if target_variable.upper() in col.upper()), None)
+                
+            if not match_col:
                 continue
             
-            df[target_variable] = pd.to_numeric(df[target_variable], errors='coerce')
+            df[match_col] = pd.to_numeric(df[match_col], errors='coerce')
             
-            # Special filtering for Wheel Slip: require positive X-axis acceleration (X axis > 0)
-            # to block coasting/deceleration noise while keeping true lower-magnitude slips.
-            if 'WHEEL SLIP' in target_variable.upper():
-                xaxis_col = next((col for col in df.columns if 'x axis' in col.lower() or 'long' in col.lower()), None)
-                if xaxis_col:
-                    df[xaxis_col] = pd.to_numeric(df[xaxis_col], errors='coerce')
-                    df = df[df[xaxis_col] > 0.0]
+            # Require active forward acceleration (> 0.05G) to eliminate coasting/shift noise
+            xaxis_col = next((col for col in df.columns if 'x axis' in col.lower() or 'long' in col.lower()), None)
+            if xaxis_col:
+                df[xaxis_col] = pd.to_numeric(df[xaxis_col], errors='coerce')
+                df = df[df[xaxis_col] > 0.05]
             
             # Find time column dynamically
             time_col = next((col for col in df.columns if 'time' in col.lower() or 'sec' in col.lower() or 'rtc' in col.lower()), None)
@@ -45,36 +49,36 @@ def find_global_max_across_csvs(folder_path, target_variable):
                 if "_1.csv" in file_path:
                     df = df[df[time_col] >= 2.0]
             
-            valid_df = df.dropna(subset=[target_variable])
+            valid_df = df.dropna(subset=[match_col])
             if valid_df.empty:
                 continue
                 
-            local_max_idx = valid_df[target_variable].idxmax()
-            local_max_val = valid_df.loc[local_max_idx, target_variable]
+            local_max_idx = valid_df[match_col].idxmax()
+            local_max_val = valid_df.loc[local_max_idx, match_col]
+            local_time = valid_df.loc[local_max_idx, time_col] if time_col else "Unknown"
             
             if local_max_val > max_val:
                 max_val = local_max_val
-                max_file = os.path.basename(file_path)
-                max_time = valid_df.loc[local_max_idx, time_col] if time_col else "Unknown Time"
+                max_file = filename
+                max_time = local_time
                 
         except Exception as e:
-            print(f"Error reading {os.path.basename(file_path)}: {e}")
+            print(f"Error reading {filename}: {e}")
             
     return {"max_value": max_val, "file": max_file, "time": max_time}
 
 if __name__ == "__main__":
     # Point to the folder where your CSV files are saved
     log_folder = r"PASTE YOUR FOLDER PATH HERE WITHIN THE QUOTES"
-    variable = "WHEEL SLIP"  # Change to "AFR Left", "RPM", etc. as needed
+    variable = "THE NAME OF THE VARIABLE GOES HERE WITHIN THE QUOTES SUCH AS AFR LEFT, CTS, OIL PRESSURE, ETC"  
     
-    print(f"Scanning files for maximum '{variable}' (filtering out coasting/deceleration)...")
+    print(f"Scanning segment files for maximum '{variable}'...")
     result = find_global_max_across_csvs(log_folder, variable)
     
     if result and result["max_value"] != float('-inf'):
         print("\n--- Global Maximum Found ---")
-        print(f"  Variable: {variable}")
         print(f"  Maximum Value: {result['max_value']}")
-        print(f"  Source File:   {result['file']}")
+        print(f"  Segment File:  {result['file']}")
         print(f"  Timestamp:     {result['time']}")
     else:
         print("\nCould not find a maximum value. Check your folder path or variable name.")
