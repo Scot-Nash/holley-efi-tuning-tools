@@ -118,8 +118,8 @@ def find_global_max_across_csvs(folder_path, target_variable):
 
 if __name__ == "__main__":
     # Path to your Holley data log folder
-    log_folder = r"C:\Users\snash\Documents\Holley\HEFI V6\Data Logs\10_18_26"
-    variable = "RF Wheel Speed"
+    log_folder = r"PASTE YOUR FOLDER PATH HERE WITHIN THE QUOTES"
+    variable = "PASTE THE NAME OF YOUR VARIABLE HERE WITHIN THE QUOTES"
 
     print(f"Scanning segment files for maximum '{variable}'...")
     result = find_global_max_across_csvs(log_folder, variable)
