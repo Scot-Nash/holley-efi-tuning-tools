@@ -16,7 +16,6 @@ def find_global_max_across_csvs(folder_path, target_variable):
     )
 
     # Filter specifically for segment files (e.g., 10_18_26_1.csv)
-    # Checks for files with >= 4 underscore-separated parts OR ending in _<digit>.csv
     csv_files = [
         f
         for f in all_csvs
@@ -28,6 +27,8 @@ def find_global_max_across_csvs(folder_path, target_variable):
         print(f"No matching segment CSV files found in {folder_path}")
         return None
 
+    is_g_meter = any(g in target_variable.upper() for g in ["X AXIS", "Y AXIS"])
+
     for file_path in sorted(csv_files):
         filename = os.path.basename(file_path)
         try:
@@ -37,7 +38,7 @@ def find_global_max_across_csvs(folder_path, target_variable):
             # Clean column names (strip leading/trailing whitespace)
             df.columns = df.columns.str.strip()
 
-            # Dynamically look for the filtered channel first (e.g., 'WHEEL SLIP - F'), fallback to raw channel
+            # Dynamically look for the target channel
             match_col = next(
                 (
                     col
@@ -62,18 +63,10 @@ def find_global_max_across_csvs(folder_path, target_variable):
 
             df[match_col] = pd.to_numeric(df[match_col], errors="coerce")
 
-            # Optional: Require active forward acceleration (> 0.05G) to eliminate noise
-            xaxis_col = next(
-                (
-                    col
-                    for col in df.columns
-                    if "x axis" in col.lower() or "long" in col.lower()
-                ),
-                None,
-            )
-            if xaxis_col:
-                df[xaxis_col] = pd.to_numeric(df[xaxis_col], errors="coerce")
-                df = df[df[xaxis_col] > 0.05]
+            # Apply a light rolling smoothing window (5-point) specifically for G-meter channels
+            # to kill jagged mechanical/electrical spikes while preserving actual acceleration curves.
+            if is_g_meter:
+                df[match_col] = df[match_col].rolling(window=5, center=True).mean()
 
             # Find time column dynamically
             time_col = next(
@@ -92,6 +85,23 @@ def find_global_max_across_csvs(folder_path, target_variable):
                 # Ignore startup ramp/noise in the first segment file (_1.csv)
                 if filename.lower().endswith("_1.csv"):
                     df = df[df[time_col] >= 2.0]
+
+            # Find TPS column to use as a validity gate for G-meter peaks
+            tps_col = next(
+                (col for col in df.columns if "tps" in col.lower()), None
+            )
+            if tps_col:
+                df[tps_col] = pd.to_numeric(df[tps_col], errors="coerce")
+
+            # Apply specific filtering gates for G-meter variables to ignore shift/lift transients
+            if is_g_meter:
+                # 1. Require basic forward acceleration threshold (> 0.05G)
+                df = df[df[match_col] > 0.05]
+
+                # 2. TPS Gate: Real hard acceleration requires throttle to be planted (> 50% TPS)
+                # This explicitly blocks post-lift shift spikes where TPS drops off.
+                if tps_col:
+                    df = df[df[tps_col] > 50.0]
 
             valid_df = df.dropna(subset=[match_col])
             if valid_df.empty:
@@ -118,15 +128,17 @@ def find_global_max_across_csvs(folder_path, target_variable):
 
 if __name__ == "__main__":
     # Path to your Holley data log folder
-    log_folder = r"PASTE YOUR FOLDER PATH HERE WITHIN THE QUOTES"
-    variable = "PASTE THE NAME OF YOUR VARIABLE HERE WITHIN THE QUOTES"
+    log_folder = r"C:\Users\snash\Documents\Holley\HEFI V6\Data Logs\10_18_26"
+
+    # Change this to "X Axis", "Y Axis", "RPM", "Coolant Temp", etc. as needed
+    variable = "X Axis"
 
     print(f"Scanning segment files for maximum '{variable}'...")
     result = find_global_max_across_csvs(log_folder, variable)
 
     if result and result["max_value"] != float("-inf"):
         print("\n--- Global Maximum Found ---")
-        print(f"  Maximum Value: {result['max_value']}")
+        print(f"  Maximum Value: {result['max_value']:.2f}G")
         print(f"  Segment File:  {result['file']}")
         print(f"  Timestamp:     {result['time']}")
     else:
